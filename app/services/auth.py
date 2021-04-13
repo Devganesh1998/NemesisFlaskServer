@@ -8,6 +8,7 @@ import traceback
 from flask_bcrypt import generate_password_hash, check_password_hash
 
 authKey = 'secret'
+expirationTime = 60 * 5
 
 
 def register_user(data):
@@ -24,7 +25,6 @@ def register_user(data):
         )
         db.session.add(tempUser)
         db.session.commit()
-        expirationTime = 60 * 5
         signedEmail = jwt.encode({'email': data['email']}, authKey, 'HS256').decode('utf-8')
         resp = make_response({'error': False, 'isRegisterSuccess': True, 'message': 'Registered Successfully',
                               'user': {'email': data['email']}})
@@ -45,7 +45,6 @@ def login_user(credentials):
         password = credentials['password']
         results = User.query.filter(User.email == email).first()
         if (results != None and check_password_hash(results.password.encode('utf8'), password)):
-            expirationTime = 60 * 60 * 2
             signedEmail = jwt.encode({'email': email}, authKey, 'HS256').decode('utf-8')
             resp = make_response({'error': False, 'message': 'Login Successful',
                                   'isLoginSuccess': True, 'user': {'email': email}})
