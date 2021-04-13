@@ -34,9 +34,9 @@ def register_user(data):
     except Exception as err:
         print(err)
         if (err.args[0] == '(MySQLdb._exceptions.IntegrityError) (1062, "Duplicate entry \'testmail\' for key \'users.email\'")'):
-            return Response('{"error": true, "errormsg": "Given email has already an account", "isRegisterSuccess": False, "sampleFormat": {"first_name": "test", "last_name": "mail", "email": "testmail", "password": "testpassword", "mobile": "9736276323"}}', status=400, mimetype='application/json')
+            return Response('{"error": true, "errormsg": "Given email has already an account", "isRegisterSuccess": false, "sampleFormat": {"first_name": "test", "last_name": "mail", "email": "testmail", "password": "testpassword", "mobile": "9736276323"}}', status=400, mimetype='application/json')
         traceback.print_exc() 
-        return Response('{"error": true, "errormsg": "Internal Server Error", "isRegisterSuccess": False, "sampleFormat": {"first_name": "test", "last_name": "mail", "email": "testmail", "password": "testpassword", "mobile": "9736276323"}}', status=500, mimetype='application/json')
+        return Response('{"error": true, "errormsg": "Internal Server Error", "isRegisterSuccess": false, "sampleFormat": {"first_name": "test", "last_name": "mail", "email": "testmail", "password": "testpassword", "mobile": "9736276323"}}', status=500, mimetype='application/json')
 
 
 def login_user(credentials):
@@ -52,11 +52,11 @@ def login_user(credentials):
             resp.set_cookie('signedEmail', str(signedEmail), max_age=expirationTime, secure=True, httponly=True, samesite='None')
             return resp
         else:
-            return Response('{"error": true, "errormsg": "Incorrect Password", "isLoginSuccess": False, "sampleFormat": {"email": "testmail", "password": "testpassword"}}', status=400, mimetype='application/json')
+            return Response('{"error": true, "errormsg": "Incorrect Password", "isLoginSuccess": false, "sampleFormat": {"email": "testmail", "password": "testpassword"}}', status=400, mimetype='application/json')
     except Exception as err:
         print(err)
         traceback.print_exc() 
-        return Response('{"error": true, "errormsg": "Internal server error", "isLoginSuccess": False, "sampleFormat": {"email": "testmail", "password": "testpassword"}}', status=500, mimetype='application/json')
+        return Response('{"error": true, "errormsg": "Internal server error", "isLoginSuccess": false, "sampleFormat": {"email": "testmail", "password": "testpassword"}}', status=500, mimetype='application/json')
 
 
 def logout_user():
@@ -68,17 +68,18 @@ def logout_user():
     except Exception as err:
         print(err)
         traceback.print_exc() 
-        return({'isLogoutSuccess': False, 'errormsg': str(err)})
+        return Response('{"errormsg": "Internal server error", "isLogoutSuccess": false}', status=500, mimetype='application/json')
 
 
 def verifyAuth():
     try:
         signedEmail = request.cookies.get('signedEmail')
-        signedEmailPayload = jwt.decode(signedEmail, authKey, algorithms=['HS256'])
-        if signedEmailPayload is not None and signedEmailPayload['email'] is not None:
-            return({'isAuthenticated': True})
-        return({'isAuthenticated': False, 'errormsg': "Session Expired"})
+        if signedEmail is not None:
+            signedEmailPayload = jwt.decode(signedEmail, authKey, algorithms=['HS256'])
+            if signedEmailPayload is not None and signedEmailPayload['email'] is not None:
+                return Response('{"isAuthenticated": true}', status=200, mimetype='application/json')
+        return Response('{"message": "Session Expired", "isAuthenticated": false}', status=200, mimetype='application/json')
     except Exception as err:
-        print("err", err)
+        print(err)
         traceback.print_exc() 
-        return({'isAuthenticated': False, 'errormsg': str(err)})
+        return Response('{"error": true, "errormsg": "Internal server error", "isAuthenticated": false }', status=500, mimetype='application/json')

@@ -41,4 +41,4 @@ def logout():
 @user.route('/verifyAuth', methods=['GET'])
 def verifyAuthentication():
     res = verifyAuth()
-    return json.dumps(res)
+    return res
