@@ -44,7 +44,7 @@ def login_user(credentials):
         email = credentials['email']
         password = credentials['password']
         results = User.query.filter(User.email == email).first()
-        if (results != None and check_password_hash(results.password, password)):
+        if (results != None and check_password_hash(results.password.encode('utf8'), password)):
             expirationTime = 60 * 60 * 2
             signedEmail = jwt.encode({'email': email}, authKey, 'HS256').decode('utf-8')
             resp = make_response({'error': False, 'message': 'Login Successful',
