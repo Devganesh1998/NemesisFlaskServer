@@ -29,7 +29,7 @@ def register_user(data):
         resp = make_response({'error': False, 'isRegisterSuccess': True, 'message': 'Registered Successfully',
                               'user': {'email': data['email']}})
         resp.headers.add('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept')
-        resp.set_cookie('signedEmail', str(signedEmail), max_age=expirationTime, secure=True, httponly=True, samesite='None')
+        resp.set_cookie('signedEmail', str(signedEmail), max_age=expirationTime, httponly=True, samesite='same-site', secure=True)
         return resp
     except Exception as err:
         print(err)
@@ -49,7 +49,7 @@ def login_user(credentials):
             resp = make_response({'error': False, 'message': 'Login Successful',
                                   'isLoginSuccess': True, 'user': {'email': email}})
             resp.headers.add('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept')
-            resp.set_cookie('signedEmail', str(signedEmail), max_age=expirationTime, secure=True, httponly=True, samesite='None')
+            resp.set_cookie('signedEmail', str(signedEmail), max_age=expirationTime, httponly=True, samesite='same-site', secure=True)
             return resp
         else:
             return Response('{"error": true, "errormsg": "Incorrect Password", "isLoginSuccess": false, "sampleFormat": {"email": "testmail", "password": "testpassword"}}', status=400, mimetype='application/json')
@@ -63,7 +63,7 @@ def logout_user():
     try:
         signedEmail = request.cookies.get('signedEmail')
         resp = make_response({'isLogoutSuccess': True})
-        resp.set_cookie('signedEmail', '', max_age=0, secure=True, httponly=True, samesite='None')
+        resp.set_cookie('signedEmail', '', max_age=0, httponly=True, samesite='same-site', secure=True)
         return resp
     except Exception as err:
         print(err)
@@ -77,7 +77,7 @@ def verifyAuth():
         if signedEmail is not None:
             signedEmailPayload = jwt.decode(signedEmail, authKey, algorithms=['HS256'])
             if signedEmailPayload is not None and signedEmailPayload['email'] is not None:
-                return Response('{"isAuthenticated": true}', status=200, mimetype='application/json')
+                return Response('{"isAuthenticated": true, "user": { "email": "' + signedEmailPayload['email'] + '" }}', status=200, mimetype='application/json')
         return Response('{"message": "Session Expired", "isAuthenticated": false}', status=200, mimetype='application/json')
     except Exception as err:
         print(err)
