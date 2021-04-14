@@ -2,3 +2,5 @@
 flaskenv
 
 __pycache__
+
+credentials.py
